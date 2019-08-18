@@ -9,8 +9,9 @@ class Link(Resource):
         return {'hello': 'world'}
     def post(self):
         params = request.get_json(force=True)
-        user = params.userid
-        url = params.url
+        print(params)
+        user = params['userid']
+        url = params['url']
         return 'Hit me'
 
 link_api.add_resource(Link, '/links')
