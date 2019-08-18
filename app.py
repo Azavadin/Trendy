@@ -11,5 +11,6 @@ class Link(Resource):
         params = request.get_json(force=True)
         user = params.userid
         url = params.url
+        return 'Hit me'
 
 link_api.add_resource(Link, '/links')
