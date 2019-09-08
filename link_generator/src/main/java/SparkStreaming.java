@@ -45,26 +45,31 @@ public class SparkStreaming
 
         // uniqStrm.print();
 
-        PairFunction<String, String, String> splitFn = new PairFunction<String, String, String>() {
-            @Override
-            public Tuple2<String, String> call(String s) throws Exception {
-                String[] ss = s.split(",");
-                return new Tuple2<>(ss[1], ss[0]);
-            }
-        };
+//        PairFunction<String, String, String> splitFn = new PairFunction<String, String, String>() {
+//            @Override
+//            public Tuple2<String, String> call(String s) throws Exception {
+//                String[] ss = s.split(",");
+//                return new Tuple2<>(ss[1], ss[0]);
+//            }
+//        };
 
-        JavaPairDStream<String, String> dataStrm = uniqStrm.mapToPair(splitFn);
-        dataStrm.map(r -> "done map to pair... " + r._1() + " -- " + r._2()).print();
+//        JavaPairDStream<String, String> dataStrm = uniqStrm.mapToPair(splitFn);
+//        dataStrm.map(r -> "done map to pair... " + r._1() + " -- " + r._2()).print();
+//
+//        JavaPairDStream<String, Iterable<String>> result = dataStrm.groupByKey();
+//
+//        result.map(r -> {
+//            String users = "";
+//            for (String u : r._2()) {
+//               users += u + ", ";
+//            }
+//            return r._1() + " -- [" + users + "]";
+//        }).print();
 
-        JavaPairDStream<String, Iterable<String>> result = dataStrm.groupByKey();
-
-        result.map(r -> {
-            String users = "";
-            for (String u : r._2()) {
-               users += u + ", ";
-            }
-            return r._1() + " -- [" + users + "]";
-        }).print();
+        uniqStrm.map(r -> {
+            String[] data = r.split(",");
+            return data[1];
+        }).countByValue().print();
 
 
         ssc.start();
