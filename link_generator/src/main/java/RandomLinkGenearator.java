@@ -1,3 +1,11 @@
+import java.util.Properties;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.Producer;
+import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.serialization.LongSerializer;
+import org.apache.kafka.common.serialization.StringSerializer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+
 import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
@@ -10,7 +18,7 @@ public class RandomLinkGenearator
 {
     private static final int BASE_DURATION_IN_MILLIS = 1000;
 
-    private static final int NUM_INSTANCE_PER_RUN = 100;
+    private static final int NUM_INSTANCE_PER_RUN = 10;
 
     private static final int NUM_USERS = (int)10e6;
 
@@ -25,8 +33,22 @@ public class RandomLinkGenearator
     private static final int LO_LINK_REUSE_PCT_WM = 22;
     private static final int HI_LINK_REUSE_PCT_WM = 67;
 
+    private static int link = 0;
+
     public static void main (String[] args) {
         generate();
+    }
+
+    private static Producer<String, String> createProducer() {
+        Properties props = new Properties();
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
+                "localhost:9092");
+        props.put(ProducerConfig.CLIENT_ID_CONFIG, "KafkaExampleProducer");
+        props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
+                LongSerializer.class.getName());
+        props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
+                StringSerializer.class.getName());
+        return new KafkaProducer<>(props);
     }
 
     private static void generate() {
@@ -34,6 +56,8 @@ public class RandomLinkGenearator
             long stTime = System.currentTimeMillis();
 
             Random rand = new Random();
+
+            Producer producer = createProducer();
 
             List<String> currentRunUserCache = new LinkedList<String>();
             List<String> currentRunLinkCache = new LinkedList<String>();
@@ -73,10 +97,18 @@ public class RandomLinkGenearator
                 }
 
                 print(instanceUser + " -- " + instanceLink);
+                link++;
+
+                producer.send(new ProducerRecord("test",instanceUser + "," + instanceLink));
 
                 // sleep for a random think time
-                Thread.sleep(5);
+                int thinkTime = rand.nextInt(400);
+                Thread.sleep(100 + thinkTime);
             }
+
+            producer.close();
+
+            print("Total Link count: " + link);
 
             long duration = System.currentTimeMillis() - stTime;
             print("Took " + duration + " milliseconds to complete ");
