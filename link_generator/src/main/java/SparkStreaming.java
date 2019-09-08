@@ -15,6 +15,7 @@ import scala.Tuple2;
 public class SparkStreaming
 {
     public static void main (String[] args) throws Exception {
+
         Map<String, Object> kafkaParams = new HashMap<>();
         kafkaParams.put("bootstrap.servers", "localhost:9092");
         kafkaParams.put("key.deserializer", StringDeserializer.class);
@@ -31,7 +32,7 @@ public class SparkStreaming
         JavaSparkContext sc = new JavaSparkContext(conf);
         JavaStreamingContext ssc = new JavaStreamingContext(sc, Durations.seconds(30));
 
-        JavaInputDStream<ConsumerRecord<String, String>> stream =
+        JavaInputDStream<ConsumerRecord<String, String>> dStream =
                 KafkaUtils.createDirectStream(
                         ssc,
                         LocationStrategies.PreferConsistent(),
@@ -40,24 +41,22 @@ public class SparkStreaming
 
         // stream.print();
         // stream.mapToPair(record -> new Tuple2<>(record.key(), record.value()));
-        JavaDStream<String> uniqStrm = stream.map(record -> (record.value().toString()))
+        JavaDStream<String> uniqStrm = dStream.map(record -> (record.value().toString()))
                 .countByValue().map(r -> r._1);
 
-        // uniqStrm.print();
+        uniqStrm.map(r -> {
+            String[] data = r.split(",");
+            return data[1];
+        }).countByValue().print();
 
-//        PairFunction<String, String, String> splitFn = new PairFunction<String, String, String>() {
-//            @Override
-//            public Tuple2<String, String> call(String s) throws Exception {
-//                String[] ss = s.split(",");
-//                return new Tuple2<>(ss[1], ss[0]);
-//            }
+//        uniqStrm.print();
+//        PairFunction<String, String, String> splitFn = (s) -> {
+//            String[] ss = s.split(",");
+//            return new Tuple2<>(ss[1], ss[0]);
 //        };
-
 //        JavaPairDStream<String, String> dataStrm = uniqStrm.mapToPair(splitFn);
 //        dataStrm.map(r -> "done map to pair... " + r._1() + " -- " + r._2()).print();
-//
 //        JavaPairDStream<String, Iterable<String>> result = dataStrm.groupByKey();
-//
 //        result.map(r -> {
 //            String users = "";
 //            for (String u : r._2()) {
@@ -65,12 +64,6 @@ public class SparkStreaming
 //            }
 //            return r._1() + " -- [" + users + "]";
 //        }).print();
-
-        uniqStrm.map(r -> {
-            String[] data = r.split(",");
-            return data[1];
-        }).countByValue().print();
-
 
         ssc.start();
         ssc.awaitTermination();
