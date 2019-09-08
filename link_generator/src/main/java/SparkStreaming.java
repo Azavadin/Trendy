@@ -39,17 +39,16 @@ public class SparkStreaming
                         ConsumerStrategies.<String, String>Subscribe(topics, kafkaParams)
                 );
 
-        // stream.print();
-        // stream.mapToPair(record -> new Tuple2<>(record.key(), record.value()));
-        JavaDStream<String> uniqStrm = dStream.map(record -> (record.value().toString()))
+//        dStream.print();
+        JavaDStream<String> uniqStrm = dStream.map(record -> (record.value()))
                 .countByValue().map(r -> r._1);
+//        uniqStrm.print();
 
         uniqStrm.map(r -> {
             String[] data = r.split(",");
             return data[1];
-        }).countByValue().print();
+        }).countByValue().print(); // dstream().saveAsTextFiles("result", "");
 
-//        uniqStrm.print();
 //        PairFunction<String, String, String> splitFn = (s) -> {
 //            String[] ss = s.split(",");
 //            return new Tuple2<>(ss[1], ss[0]);

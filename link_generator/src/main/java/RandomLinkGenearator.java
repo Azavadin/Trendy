@@ -16,6 +16,8 @@ import java.util.Random;
  */
 public class RandomLinkGenearator
 {
+    private static final String TOPIC_NAME = "test";
+
     private static final int BASE_DURATION_IN_MILLIS = 1000;
 
     private static final int NUM_INSTANCE_PER_RUN = 10;
@@ -57,7 +59,7 @@ public class RandomLinkGenearator
 
             Random rand = new Random();
 
-            Producer producer = createProducer();
+            Producer<String, String> producer = createProducer();
 
             List<String> currentRunUserCache = new LinkedList<String>();
             List<String> currentRunLinkCache = new LinkedList<String>();
@@ -99,7 +101,7 @@ public class RandomLinkGenearator
                 print(instanceUser + " -- " + instanceLink);
                 link++;
 
-                producer.send(new ProducerRecord("test",instanceUser + "," + instanceLink));
+                producer.send(new ProducerRecord(TOPIC_NAME,instanceUser + "," + instanceLink));
 
                 // sleep for a random think time
                 int thinkTime = rand.nextInt(400);
